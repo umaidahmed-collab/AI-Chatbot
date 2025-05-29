@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  dev:
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - .:/workspace:cached
+      - /var/run/docker.sock:/var/run/docker-host.sock
+    environment:
+      - DATABASE_URL=postgresql://chatbot:password@postgres:5432/chatbot_db
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - SECRET_KEY=dev-secret-key-change-in-production
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - "3000:3000"
+      - "8000:8000"
+    command: sleep infinity
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: chatbot_db
+      POSTGRES_USER: chatbot
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:
