@@ -3,7 +3,8 @@ Chat service for handling conversations and AI responses.
 """
 
 import openai
-from typing import List, Optional, Dict, Any
+import logging
+from typing import List, Optional, Dict
 from sqlalchemy.orm import Session
 
 from app.models.database import ChatSession, ChatMessage, User
@@ -11,14 +12,25 @@ from app.models.schemas import ChatRequest, ChatResponse
 from app.services.document_processor import document_processor
 from app.utils.config import settings
 
+# Set up logging
+logger = logging.getLogger(__name__)
+
 
 class ChatService:
     """Chat service for managing conversations."""
-    
+
     def __init__(self):
+        self.client = None
         if settings.OPENAI_API_KEY:
-            openai.api_key = settings.OPENAI_API_KEY
-        self.model = "gpt-3.5-turbo"
+            try:
+                self.client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
+                self.model = "gpt-3.5-turbo"
+                logger.info("OpenAI client initialized successfully")
+            except Exception as e:
+                logger.error(f"Failed to initialize OpenAI client: {e}")
+                self.client = None
+        else:
+            logger.warning("No OpenAI API key provided")
     
     def create_session(self, db: Session, user: User, title: Optional[str] = None) -> ChatSession:
         """Create a new chat session."""
@@ -90,7 +102,7 @@ class ChatService:
         context = ""
         sources = []
         if request.use_documents:
-            doc_results = document_processor.search_documents(request.message)
+            doc_results = await document_processor.search_documents(request.message)
             if doc_results:
                 context = "\n\n".join([result["content"] for result in doc_results])
                 sources = [f"Document {result['metadata']['document_id']}" for result in doc_results]
@@ -127,40 +139,60 @@ class ChatService:
         conversation_history: List[Dict[str, str]]
     ) -> str:
         """Call OpenAI API to generate response."""
-        if not settings.OPENAI_API_KEY:
+        if not self.client:
             return self._fallback_response(user_message, context)
-        
+
         try:
             # Prepare system message
             system_message = "You are a helpful AI assistant."
             if context:
-                system_message += f"\n\nUse the following context to answer questions:\n{context}"
-            
+                system_message += f"\n\nUse the following context from uploaded documents to answer questions:\n{context}"
+                system_message += "\n\nWhen referencing information from the documents, please mention that the information comes from the uploaded documents."
+
             # Prepare messages
             messages = [{"role": "system", "content": system_message}]
             messages.extend(conversation_history[:-1])  # Exclude the last user message
             messages.append({"role": "user", "content": user_message})
-            
-            # Call OpenAI
-            response = await openai.ChatCompletion.acreate(
+
+            logger.info(f"Sending request to OpenAI with {len(messages)} messages")
+
+            # Call OpenAI using the new client
+            response = self.client.chat.completions.create(
                 model=self.model,
                 messages=messages,
                 max_tokens=500,
                 temperature=0.7
             )
-            
-            return response.choices[0].message.content
-        
+
+            ai_response = response.choices[0].message.content
+            logger.info(f"Received response from OpenAI: {len(ai_response)} characters")
+            return ai_response
+
         except Exception as e:
-            print(f"OpenAI API error: {e}")
+            logger.error(f"OpenAI API error: {e}")
             return self._fallback_response(user_message, context)
     
     def _fallback_response(self, user_message: str, context: str) -> str:
         """Fallback response when OpenAI is not available."""
         if context:
-            return f"Based on the uploaded documents, I found some relevant information. However, I need an OpenAI API key to provide a detailed response. Your question was: {user_message}"
+            # Extract first few sentences from context for a basic response
+            context_preview = context[:500] + "..." if len(context) > 500 else context
+            return f"""I found relevant information in your uploaded documents:
+
+{context_preview}
+
+However, I need an OpenAI API key to provide intelligent analysis and detailed responses. Please configure the OPENAI_API_KEY environment variable to enable full AI capabilities.
+
+Your question: "{user_message}" """
         else:
-            return f"I received your message: '{user_message}'. However, I need an OpenAI API key to provide intelligent responses. Please configure the OPENAI_API_KEY environment variable."
+            return f"""I received your message: "{user_message}"
+
+I need an OpenAI API key to provide intelligent responses. Please:
+1. Get an API key from https://platform.openai.com/api-keys
+2. Set the OPENAI_API_KEY environment variable
+3. Restart the application
+
+For now, I can help you upload and process documents, but AI-powered conversations require the API key."""
 
 
 # Global instance
