@@ -1,17 +1,42 @@
-# AI Chatbot with Document Upload
+# Wellows AI Chatbot
 
-A complete chatbot application with document upload and processing capabilities. Built with FastAPI backend, React frontend, and AI-powered conversations using uploaded documents.
+A comprehensive AI chatbot application with advanced document processing capabilities. Built with modern technologies and designed for scalability, security, and developer productivity.
 
-## Features
+## ✨ Features
 
-- 🤖 **AI-Powered Chat**: Intelligent conversations using OpenAI GPT models
-- 📄 **Document Upload**: Support for PDF, DOCX, and TXT files
-- 🔍 **Document Search**: AI can reference uploaded documents in conversations
-- 💬 **Chat Sessions**: Organize conversations into sessions
-- 🔐 **User Authentication**: Secure login and registration
-- 📱 **Responsive UI**: Modern, mobile-friendly interface
-- 🐳 **Containerized**: Full Docker support with dev containers
-- 🧪 **Tested**: Comprehensive unit tests for backend and frontend
+### 🤖 **AI-Powered Conversations**
+- Intelligent conversations using OpenAI GPT models
+- Context-aware responses with document integration
+- Fallback responses when API is unavailable
+- Conversation history and session management
+
+### 📄 **Advanced Document Processing**
+- Support for PDF, DOCX, and TXT files
+- Automatic text extraction and chunking
+- OpenAI embeddings for semantic search
+- Vector database storage with ChromaDB
+- Real-time processing status updates
+
+### 🔐 **Enterprise-Grade Security**
+- JWT-based authentication system
+- Secure password hashing with bcrypt
+- Input validation and sanitization
+- CORS configuration and rate limiting
+- File upload security and validation
+
+### 💻 **Modern Development Experience**
+- Complete dev container setup with VS Code
+- Hot reload for both frontend and backend
+- Comprehensive testing suites
+- Code formatting and linting
+- Pre-commit hooks and CI/CD ready
+
+### 📱 **Responsive User Interface**
+- Modern React with TypeScript
+- Tailwind CSS for consistent styling
+- Drag-and-drop file uploads
+- Real-time chat interface
+- Mobile-optimized design
 
 ## Technology Stack
 
@@ -206,3 +231,75 @@ For support and questions:
 - Create an issue in the GitHub repository
 - Check the documentation in the `docs/` folder
 - Review the API documentation at `/docs` endpoint
+
+## 📚 Enhanced Documentation
+
+This project includes comprehensive documentation for all components:
+
+### 📁 **Folder-Level Documentation**
+- **[Backend Documentation](./backend/README.md)** - Complete backend API guide
+- **[Frontend Documentation](./frontend/README.md)** - React application guide
+- **[Dev Container Documentation](./.devcontainer/README.md)** - Development environment setup
+- **[Tests Documentation](./backend/tests/README.md)** - Testing strategies and guidelines
+- **[Docs Overview](./docs/README.md)** - Documentation structure and standards
+
+### 🔧 **Development Guides**
+- **[API Reference](./docs/API.md)** - Complete API documentation
+- **[Setup Guide](./docs/SETUP.md)** - Installation and configuration
+- **[Architecture Overview](./docs/ARCHITECTURE.md)** - System design and components
+
+### 🚀 **Quick Development Commands**
+
+When using the dev container, you have access to convenient aliases:
+
+```bash
+# Navigation
+backend     # Navigate to backend directory
+frontend    # Navigate to frontend directory
+docs        # Navigate to docs directory
+
+# Development
+runapi      # Start backend API server
+runfrontend # Start frontend development server
+
+# Testing
+test-backend   # Run backend tests with coverage
+test-frontend  # Run frontend tests
+
+# Code Quality
+lint        # Run linting on both backend and frontend
+format      # Format code in both backend and frontend
+
+# Docker
+dcup        # docker-compose up
+dcdown      # docker-compose down
+dclogs      # docker-compose logs -f
+```
+
+## 🎯 **LAB Tasks Completed**
+
+This implementation addresses the following JIRA tickets:
+
+### ✅ **LAB-10: Setup a .devcontainer**
+- Complete VS Code dev container configuration
+- Multi-language support (Python + Node.js)
+- Pre-configured extensions and settings
+- Automated setup scripts
+- Database and service integration
+- Convenient development aliases
+
+### ✅ **LAB-2: Generate markdown documentation**
+- Comprehensive README for each folder
+- API documentation with examples
+- Setup and deployment guides
+- Architecture documentation
+- Testing guidelines and best practices
+- Development workflow documentation
+
+## 🔄 **Next Steps**
+
+Ready for additional LAB tasks:
+- **LAB-8**: Unit testing plan (foundation already in place)
+- **LAB-11**: AI IDE guidelines (dev container provides foundation)
+- **LAB-12**: PRD and TDD documentation
+- **LAB-16**: Documentation website compilation

@@ -15,13 +15,28 @@ from app.services.document_processor import document_processor
 router = APIRouter()
 
 
-async def process_document_background(file_path: str, document_id: int):
+async def process_document_background(file_path: str, document_id: int, db: Session):
     """Background task to process document."""
-    success = await document_processor.process_document(file_path, document_id)
-    if success:
-        print(f"Document {document_id} processed successfully")
-    else:
-        print(f"Failed to process document {document_id}")
+    try:
+        success = await document_processor.process_document(file_path, document_id)
+
+        # Update document status in database
+        document = db.query(DocumentModel).filter(DocumentModel.id == document_id).first()
+        if document:
+            document.processed = success
+            db.commit()
+
+        if success:
+            print(f"Document {document_id} processed successfully")
+        else:
+            print(f"Failed to process document {document_id}")
+    except Exception as e:
+        print(f"Error in background processing for document {document_id}: {e}")
+        # Mark as failed in database
+        document = db.query(DocumentModel).filter(DocumentModel.id == document_id).first()
+        if document:
+            document.processed = False
+            db.commit()
 
 
 @router.post("/upload", response_model=DocumentSchema)
@@ -50,7 +65,7 @@ async def upload_document(
     db.refresh(document)
     
     # Process document in background
-    background_tasks.add_task(process_document_background, file_path, document.id)
+    background_tasks.add_task(process_document_background, file_path, document.id, db)
     
     return document
 
@@ -96,17 +111,38 @@ async def delete_document(
         DocumentModel.id == document_id,
         DocumentModel.owner_id == current_user.id
     ).first()
-    
+
     if not document:
         raise HTTPException(status_code=404, detail="Document not found")
-    
+
+    # Delete chunks from ChromaDB
+    try:
+        document_processor.delete_document_chunks(document_id)
+    except Exception as e:
+        print(f"Warning: Failed to delete document chunks from ChromaDB: {e}")
+
     # Delete file from disk
     import os
     if os.path.exists(document.file_path):
-        os.remove(document.file_path)
-    
+        try:
+            os.remove(document.file_path)
+        except Exception as e:
+            print(f"Warning: Failed to delete file from disk: {e}")
+
     # Delete from database
     db.delete(document)
     db.commit()
-    
+
     return {"message": "Document deleted successfully"}
+
+
+@router.get("/stats")
+async def get_document_stats(
+    current_user: User = Depends(get_current_active_user)
+):
+    """Get document processing statistics."""
+    try:
+        stats = document_processor.get_document_stats()
+        return stats
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error getting stats: {str(e)}")

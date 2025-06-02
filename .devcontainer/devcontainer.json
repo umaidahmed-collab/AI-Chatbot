@@ -1,5 +1,5 @@
 {
-  "name": "AI Chatbot Development",
+  "name": "Wellows Development Environment",
   "dockerComposeFile": "../docker-compose.dev.yml",
   "service": "dev",
   "workspaceFolder": "/workspace",
@@ -7,40 +7,164 @@
   "customizations": {
     "vscode": {
       "extensions": [
+        // Python Development
         "ms-python.python",
         "ms-python.pylint",
         "ms-python.black-formatter",
         "ms-python.isort",
-        "bradlc.vscode-tailwindcss",
-        "esbenp.prettier-vscode",
+        "ms-python.pytest",
+        "ms-python.debugpy",
+        "ms-python.mypy-type-checker",
+
+        // JavaScript/TypeScript Development
         "ms-vscode.vscode-typescript-next",
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss",
         "ms-vscode.vscode-json",
+        "ms-vscode.vscode-eslint",
+
+        // Docker & Containers
         "ms-azuretools.vscode-docker",
         "ms-vscode-remote.remote-containers",
+
+        // AI & Productivity
         "github.copilot",
         "github.copilot-chat",
-        "ms-python.pytest",
-        "ms-python.debugpy"
+
+        // Git & Version Control
+        "eamodio.gitlens",
+        "github.vscode-pull-request-github",
+
+        // Documentation & Markdown
+        "yzhang.markdown-all-in-one",
+        "davidanson.vscode-markdownlint",
+        "bierner.markdown-mermaid",
+
+        // Testing & Quality
+        "ms-vscode.test-adapter-converter",
+        "hbenl.vscode-test-explorer",
+        "ryanluker.vscode-coverage-gutters",
+
+        // Database
+        "ms-mssql.mssql",
+        "cweijan.vscode-postgresql-client2",
+
+        // API Development
+        "humao.rest-client",
+        "42crunch.vscode-openapi",
+
+        // Utilities
+        "ms-vscode.hexeditor",
+        "redhat.vscode-yaml",
+        "ms-vscode.vscode-json",
+        "formulahendry.auto-rename-tag"
       ],
       "settings": {
+        // Python Configuration
         "python.defaultInterpreterPath": "/usr/local/bin/python",
         "python.linting.enabled": true,
         "python.linting.pylintEnabled": true,
+        "python.linting.mypyEnabled": true,
         "python.formatting.provider": "black",
         "python.sortImports.args": ["--profile", "black"],
+        "python.testing.pytestEnabled": true,
+        "python.testing.unittestEnabled": false,
+        "python.testing.pytestArgs": ["tests"],
+
+        // Editor Configuration
         "editor.formatOnSave": true,
+        "editor.formatOnPaste": true,
         "editor.codeActionsOnSave": {
-          "source.organizeImports": true
+          "source.organizeImports": true,
+          "source.fixAll.eslint": true
         },
+        "editor.rulers": [88, 120],
+        "editor.tabSize": 2,
+        "editor.insertSpaces": true,
+
+        // File Configuration
         "files.exclude": {
           "**/__pycache__": true,
           "**/.pytest_cache": true,
-          "**/node_modules": true
-        }
+          "**/node_modules": true,
+          "**/.mypy_cache": true,
+          "**/coverage": true,
+          "**/.coverage": true
+        },
+        "files.watcherExclude": {
+          "**/.git/objects/**": true,
+          "**/.git/subtree-cache/**": true,
+          "**/node_modules/**": true,
+          "**/__pycache__/**": true
+        },
+
+        // TypeScript/JavaScript Configuration
+        "typescript.preferences.quoteStyle": "single",
+        "javascript.preferences.quoteStyle": "single",
+        "prettier.singleQuote": true,
+        "prettier.trailingComma": "es5",
+
+        // Git Configuration
+        "git.enableSmartCommit": true,
+        "git.confirmSync": false,
+        "git.autofetch": true,
+
+        // Terminal Configuration
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "terminal.integrated.fontSize": 14,
+
+        // Markdown Configuration
+        "markdown.preview.fontSize": 14,
+        "markdown.preview.lineHeight": 1.6,
+
+        // Docker Configuration
+        "docker.showStartPage": false,
+
+        // Test Configuration
+        "coverage-gutters.showLineCoverage": true,
+        "coverage-gutters.showRulerCoverage": true
       }
     }
   },
-  "forwardPorts": [3000, 8000, 5432],
+  "forwardPorts": [3000, 8000, 5432, 6379],
+  "portsAttributes": {
+    "3000": {
+      "label": "Frontend (React)",
+      "onAutoForward": "notify"
+    },
+    "8000": {
+      "label": "Backend API (FastAPI)",
+      "onAutoForward": "notify"
+    },
+    "5432": {
+      "label": "PostgreSQL Database",
+      "onAutoForward": "silent"
+    },
+    "6379": {
+      "label": "Redis Cache",
+      "onAutoForward": "silent"
+    }
+  },
   "postCreateCommand": "bash .devcontainer/post-create.sh",
-  "remoteUser": "vscode"
+  "postStartCommand": "bash .devcontainer/post-start.sh",
+  "remoteUser": "vscode",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "configureZshAsDefaultShell": true,
+      "installOhMyZsh": true,
+      "upgradePackages": true
+    },
+    "ghcr.io/devcontainers/features/git:1": {
+      "ppa": true,
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {
+      "installDirectlyFromGitHubRelease": true,
+      "version": "latest"
+    }
+  },
+  "mounts": [
+    "source=${localWorkspaceFolder}/.devcontainer/scripts,target=/workspace/.devcontainer/scripts,type=bind,consistency=cached"
+  ]
 }
