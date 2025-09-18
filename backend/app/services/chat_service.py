@@ -2,7 +2,7 @@
 Chat service for handling conversations and AI responses.
 """
 
-import openai
+from openai import AsyncOpenAI
 from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
 
@@ -16,8 +16,9 @@ class ChatService:
     """Chat service for managing conversations."""
     
     def __init__(self):
-        if settings.OPENAI_API_KEY:
-            openai.api_key = settings.OPENAI_API_KEY
+        self.client = AsyncOpenAI(
+            api_key=settings.OPENAI_API_KEY if settings.OPENAI_API_KEY else None
+        )
         self.model = "gpt-3.5-turbo"
     
     def create_session(self, db: Session, user: User, title: Optional[str] = None) -> ChatSession:
@@ -142,13 +143,13 @@ class ChatService:
             messages.append({"role": "user", "content": user_message})
             
             # Call OpenAI
-            response = await openai.ChatCompletion.acreate(
+            response = await self.client.chat.completions.create(
                 model=self.model,
                 messages=messages,
                 max_tokens=500,
                 temperature=0.7
             )
-            
+
             return response.choices[0].message.content
         
         except Exception as e:
