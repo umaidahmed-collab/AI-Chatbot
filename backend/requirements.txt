@@ -28,6 +28,9 @@ sentence-transformers==2.2.2
 # WebSocket support
 websockets
 
+# OpenAI
+openai==1.12.0
+
 # HTTP client
 httpx==0.26.0
 

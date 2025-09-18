@@ -2,7 +2,7 @@
 Chat service for handling conversations and AI responses.
 """
 
-import openai
+from openai import AsyncOpenAI
 from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
 
@@ -16,8 +16,9 @@ class ChatService:
     """Chat service for managing conversations."""
     
     def __init__(self):
-        if settings.OPENAI_API_KEY:
-            openai.api_key = settings.OPENAI_API_KEY
+        self.client = AsyncOpenAI(
+            api_key=settings.OPENAI_API_KEY if settings.OPENAI_API_KEY else None
+        )
         self.model = "gpt-3.5-turbo"
     
     def create_session(self, db: Session, user: User, title: Optional[str] = None) -> ChatSession:
@@ -83,9 +84,6 @@ class ChatService:
         else:
             session = self.create_session(db, user)
         
-        # Add user message
-        self.add_message(db, session.id, request.message, "user")
-        
         # Get context from documents if requested
         context = ""
         sources = []
@@ -94,8 +92,8 @@ class ChatService:
             if doc_results:
                 context = "\n\n".join([result["content"] for result in doc_results])
                 sources = [f"Document {result['metadata']['document_id']}" for result in doc_results]
-        
-        # Get conversation history
+
+        # Get conversation history (before adding current message)
         messages = self.get_session_messages(db, session.id)
         conversation_history = []
         for msg in messages[-10:]:  # Last 10 messages
@@ -110,8 +108,9 @@ class ChatService:
             context,
             conversation_history
         )
-        
-        # Add AI response
+
+        # Add user message and AI response to database
+        self.add_message(db, session.id, request.message, "user")
         self.add_message(db, session.id, ai_response, "assistant")
         
         return ChatResponse(
@@ -138,17 +137,17 @@ class ChatService:
             
             # Prepare messages
             messages = [{"role": "system", "content": system_message}]
-            messages.extend(conversation_history[:-1])  # Exclude the last user message
+            messages.extend(conversation_history)  # Include all conversation history
             messages.append({"role": "user", "content": user_message})
             
             # Call OpenAI
-            response = await openai.ChatCompletion.acreate(
+            response = await self.client.chat.completions.create(
                 model=self.model,
                 messages=messages,
                 max_tokens=500,
                 temperature=0.7
             )
-            
+
             return response.choices[0].message.content
         
         except Exception as e:
