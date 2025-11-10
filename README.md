@@ -116,6 +116,40 @@ The API documentation is automatically generated and available at:
 - `GET /api/documents/` - Get user's documents
 - `DELETE /api/documents/{id}` - Delete document
 
+## Database Migrations
+
+This project uses Alembic for database schema management. See [DATABASE_MIGRATIONS.md](DATABASE_MIGRATIONS.md) for comprehensive migration documentation.
+
+### Quick Migration Commands
+
+```bash
+cd backend
+
+# Apply all pending migrations
+alembic upgrade head
+
+# Create new migration from model changes
+alembic revision --autogenerate -m "Description of changes"
+
+# Check current migration status
+alembic current
+
+# View migration history
+alembic history
+```
+
+### Initial Database Setup
+
+```bash
+cd backend
+alembic upgrade head
+```
+
+This will create all necessary tables including:
+- User management (users, documents)
+- Chat system (chat_sessions, chat_messages)
+- Blog system (authors, posts)
+
 ## Testing
 
 ### Backend Tests
@@ -136,12 +170,17 @@ npm test
 AI-Made-BOT/
 ├── .devcontainer/          # Dev container configuration
 ├── backend/                # FastAPI backend
+│   ├── alembic/            # Database migrations
+│   │   ├── versions/       # Migration files
+│   │   ├── env.py          # Alembic environment
+│   │   └── script.py.mako  # Migration template
 │   ├── app/
 │   │   ├── models/         # Database models and schemas
 │   │   ├── routers/        # API route handlers
 │   │   ├── services/       # Business logic
 │   │   └── utils/          # Utilities and configuration
 │   ├── tests/              # Backend tests
+│   ├── alembic.ini         # Alembic configuration
 │   └── requirements.txt    # Python dependencies
 ├── frontend/               # React frontend
 │   ├── src/
@@ -151,6 +190,7 @@ AI-Made-BOT/
 │   │   └── types/          # TypeScript types
 │   └── package.json        # Node.js dependencies
 ├── docs/                   # Documentation
+├── DATABASE_MIGRATIONS.md  # Migration guide
 ├── docker-compose.yml      # Production compose
 ├── docker-compose.dev.yml  # Development compose
 └── README.md
