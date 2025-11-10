@@ -14,7 +14,7 @@ Base = declarative_base()
 class User(Base):
     """User model."""
     __tablename__ = "users"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(50), unique=True, index=True, nullable=False)
     email = Column(String(100), unique=True, index=True, nullable=False)
@@ -23,10 +23,22 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
-    
+
+    # Social media profile fields
+    profile_picture = Column(String(500))  # URL or file path to profile picture
+    bio = Column(Text)  # User biography/description
+
+    # Soft delete support
+    deleted_at = Column(DateTime(timezone=True), nullable=True)
+
     # Relationships
     documents = relationship("Document", back_populates="owner")
     chat_sessions = relationship("ChatSession", back_populates="user")
+
+    # Social media relationships (to be implemented)
+    posts = relationship("Post", back_populates="author", foreign_keys="Post.author_id")
+    likes = relationship("Like", back_populates="user")
+    comments = relationship("Comment", back_populates="author")
 
 
 class Document(Base):
