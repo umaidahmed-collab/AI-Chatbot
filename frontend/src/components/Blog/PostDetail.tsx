@@ -72,11 +72,11 @@ const PostDetail: React.FC = () => {
   // Loading state
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-center h-64">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading blog post...</p>
+            <div className="animate-spin rounded-full h-12 w-12 sm:h-16 sm:w-16 border-b-2 border-primary-500 mx-auto mb-4"></div>
+            <p className="text-gray-600 text-sm sm:text-base">Loading blog post...</p>
           </div>
         </div>
       </div>
@@ -86,19 +86,19 @@ const PostDetail: React.FC = () => {
   // Error state
   if (error || !post) {
     return (
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-lg shadow p-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-white rounded-lg shadow-lg p-6 sm:p-8 lg:p-12">
           <div className="flex flex-col items-center justify-center text-center">
-            <ExclamationCircleIcon className="h-16 w-16 text-red-500 mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <ExclamationCircleIcon className="h-12 w-12 sm:h-16 sm:w-16 text-red-500 mb-4" />
+            <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 mb-2">
               Unable to Load Post
             </h3>
-            <p className="text-gray-600 mb-6 max-w-md">
+            <p className="text-sm sm:text-base text-gray-600 mb-6 max-w-md px-4">
               {error || 'Post not found'}
             </p>
             <button
               onClick={handleBackClick}
-              className="px-6 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+              className="px-4 sm:px-6 py-2 sm:py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-all hover:shadow-md text-sm sm:text-base"
             >
               Back to Feed
             </button>
@@ -110,75 +110,83 @@ const PostDetail: React.FC = () => {
 
   // Post content
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* Back Navigation Button */}
       <button
         onClick={handleBackClick}
-        className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors"
+        className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-4 sm:mb-6 transition-colors text-sm sm:text-base group"
       >
-        <ArrowLeftIcon className="h-5 w-5" />
+        <ArrowLeftIcon className="h-4 w-4 sm:h-5 sm:w-5 group-hover:-translate-x-1 transition-transform" />
         <span>Back to Feed</span>
       </button>
 
       {/* Post Container */}
-      <article className="bg-white rounded-lg shadow-lg">
-        <div className="p-8">
+      <article className="bg-white rounded-lg shadow-xl">
+        <div className="p-4 sm:p-6 lg:p-8">
           {/* Post Title */}
-          <h1 className="text-4xl font-bold text-gray-900 mb-6">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight">
             {post.title}
           </h1>
 
           {/* Post Metadata */}
-          <div className="flex items-center space-x-6 text-sm text-gray-500 mb-8 pb-6 border-b border-gray-200">
-            {/* Publication Date */}
-            <div className="flex items-center space-x-2">
-              <CalendarIcon className="h-5 w-5" />
-              <span>
-                {formatDate(post.publication_date || post.created_at)}
+          <div className="flex flex-wrap items-center gap-3 sm:gap-6 text-xs sm:text-sm text-gray-500 mb-6 sm:mb-8 pb-4 sm:pb-6 border-b border-gray-200">
+            {/* Author with Profile Picture */}
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              {author?.profile_picture_url ? (
+                <img
+                  src={author.profile_picture_url}
+                  alt={author.name}
+                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover border-2 border-gray-200"
+                />
+              ) : (
+                <UserCircleIcon className="w-8 h-8 sm:w-10 sm:h-10 text-gray-400" />
+              )}
+              <span className="font-medium text-gray-700">
+                {author?.name || post.author?.name || `Author ${post.author_id}`}
               </span>
             </div>
 
-            {/* Author Name */}
+            {/* Publication Date */}
             <div className="flex items-center space-x-2">
-              <UserCircleIcon className="h-5 w-5" />
+              <CalendarIcon className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
               <span>
-                {author?.name || post.author?.name || `Author ${post.author_id}`}
+                {formatDate(post.publication_date || post.created_at)}
               </span>
             </div>
           </div>
 
           {/* Post Content */}
-          <div className="prose prose-lg max-w-none mb-8">
-            <div className="text-gray-800 whitespace-pre-wrap leading-relaxed">
+          <div className="prose prose-sm sm:prose-base lg:prose-lg max-w-none mb-6 sm:mb-8">
+            <div className="text-gray-800 whitespace-pre-wrap leading-relaxed text-sm sm:text-base lg:text-lg">
               {post.content}
             </div>
           </div>
 
           {/* Author Bio Section */}
           {author && (author.bio || author.profile_picture_url) && (
-            <div className="mt-8 pt-8 border-t border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            <div className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-gray-200">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">
                 About the Author
               </h2>
-              <div className="flex items-start space-x-4">
+              <div className="flex items-start space-x-3 sm:space-x-4">
                 {/* Author Profile Picture */}
                 {author.profile_picture_url ? (
                   <img
                     src={author.profile_picture_url}
                     alt={author.name}
-                    className="w-16 h-16 rounded-full object-cover"
+                    className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-gray-200 flex-shrink-0"
                   />
                 ) : (
-                  <UserCircleIcon className="w-16 h-16 text-gray-400" />
+                  <UserCircleIcon className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 flex-shrink-0" />
                 )}
 
                 {/* Author Info */}
-                <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900 mb-2">
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-gray-900 mb-1 sm:mb-2 text-base sm:text-lg">
                     {author.name}
                   </h3>
                   {author.bio && (
-                    <p className="text-gray-600 text-sm">
+                    <p className="text-gray-600 text-xs sm:text-sm leading-relaxed">
                       {author.bio}
                     </p>
                   )}

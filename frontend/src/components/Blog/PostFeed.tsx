@@ -90,10 +90,10 @@ const PostFeed: React.FC = () => {
   // Loading state
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading blog posts...</p>
+          <div className="animate-spin rounded-full h-12 w-12 sm:h-16 sm:w-16 border-b-2 border-primary-500 mx-auto mb-4"></div>
+          <p className="text-gray-600 text-sm sm:text-base">Loading blog posts...</p>
         </div>
       </div>
     );
@@ -102,16 +102,16 @@ const PostFeed: React.FC = () => {
   // Error state
   if (error) {
     return (
-      <div className="bg-white rounded-lg shadow p-8">
+      <div className="bg-white rounded-lg shadow-lg p-6 sm:p-8 lg:p-12">
         <div className="flex flex-col items-center justify-center text-center">
-          <ExclamationCircleIcon className="h-16 w-16 text-red-500 mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          <ExclamationCircleIcon className="h-12 w-12 sm:h-16 sm:w-16 text-red-500 mb-4" />
+          <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 mb-2">
             Unable to Load Posts
           </h3>
-          <p className="text-gray-600 mb-6 max-w-md">{error}</p>
+          <p className="text-sm sm:text-base text-gray-600 mb-6 max-w-md px-4">{error}</p>
           <button
             onClick={loadPosts}
-            className="px-6 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+            className="px-4 sm:px-6 py-2 sm:py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-all hover:shadow-md text-sm sm:text-base"
           >
             Try Again
           </button>
@@ -123,13 +123,13 @@ const PostFeed: React.FC = () => {
   // Empty state
   if (posts.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow p-8">
+      <div className="bg-white rounded-lg shadow-lg p-6 sm:p-8 lg:p-12">
         <div className="text-center">
-          <DocumentTextIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          <DocumentTextIcon className="h-12 w-12 sm:h-16 sm:w-16 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 mb-2">
             No Blog Posts Yet
           </h3>
-          <p className="text-gray-600">
+          <p className="text-sm sm:text-base text-gray-600">
             Check back later for new content!
           </p>
         </div>
@@ -139,76 +139,92 @@ const PostFeed: React.FC = () => {
 
   // Posts list
   return (
-    <div className="space-y-6">
-      {/* Posts */}
-      {posts.map((post) => (
-        <div
-          key={post.id}
-          onClick={() => handlePostClick(post.id)}
-          className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow cursor-pointer group"
-        >
-          <div className="p-6">
-            {/* Post Title */}
-            <h2 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-primary-600 transition-colors">
-              {post.title}
-            </h2>
+    <div className="space-y-8">
+      {/* Posts Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        {posts.map((post) => (
+          <div
+            key={post.id}
+            onClick={() => handlePostClick(post.id)}
+            className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer group transform hover:-translate-y-1"
+          >
+            <div className="p-4 sm:p-6 flex flex-col h-full">
+              {/* Post Title */}
+              <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-2 sm:mb-3 group-hover:text-primary-600 transition-colors line-clamp-2">
+                {post.title}
+              </h2>
 
-            {/* Post Excerpt */}
-            {post.excerpt && (
-              <p className="text-gray-700 mb-4 line-clamp-3">
-                {post.excerpt}
-              </p>
-            )}
+              {/* Post Excerpt */}
+              {post.excerpt && (
+                <p className="text-sm sm:text-base text-gray-700 mb-4 line-clamp-3 flex-grow">
+                  {post.excerpt}
+                </p>
+              )}
 
-            {/* Post Metadata */}
-            <div className="flex items-center space-x-6 text-sm text-gray-500">
-              {/* Author */}
-              <div className="flex items-center space-x-2">
-                <UserCircleIcon className="h-5 w-5" />
-                <span>
-                  {post.author?.name || `Author ${post.author_id}`}
-                </span>
+              {/* Post Metadata */}
+              <div className="space-y-3 mt-auto">
+                {/* Author */}
+                <div className="flex items-center space-x-3">
+                  {post.author?.profile_picture_url ? (
+                    <img
+                      src={post.author.profile_picture_url}
+                      alt={post.author.name}
+                      className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover border-2 border-gray-200"
+                    />
+                  ) : (
+                    <UserCircleIcon className="w-8 h-8 sm:w-10 sm:h-10 text-gray-400" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">
+                      {post.author?.name || `Author ${post.author_id}`}
+                    </p>
+                    <div className="flex items-center text-xs text-gray-500">
+                      <CalendarIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
+                      <span className="truncate">
+                        {formatDate(post.publication_date || post.created_at)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Read More Indicator */}
+                <div className="pt-2 border-t border-gray-100">
+                  <span className="text-primary-600 font-medium text-xs sm:text-sm group-hover:text-primary-700 transition-colors inline-flex items-center">
+                    Read more
+                    <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </span>
+                </div>
               </div>
-
-              {/* Publication Date */}
-              <div className="flex items-center space-x-2">
-                <CalendarIcon className="h-5 w-5" />
-                <span>
-                  {formatDate(post.publication_date || post.created_at)}
-                </span>
-              </div>
-            </div>
-
-            {/* Read More Indicator */}
-            <div className="mt-4 text-primary-600 font-medium text-sm group-hover:text-primary-700 transition-colors">
-              Read more →
             </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
 
       {/* Pagination Controls */}
-      <div className="bg-white rounded-lg shadow p-4">
+      <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
         <div className="flex items-center justify-between">
           {/* Previous Button */}
           <button
             onClick={handlePreviousPage}
             disabled={currentPage === 1}
             className={`
-              flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-colors
+              flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 rounded-lg font-medium transition-all text-sm sm:text-base
               ${
                 currentPage === 1
                   ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : 'bg-primary-500 text-white hover:bg-primary-600'
+                  : 'bg-primary-500 text-white hover:bg-primary-600 hover:shadow-md'
               }
             `}
           >
-            <ChevronLeftIcon className="h-5 w-5" />
-            <span>Previous</span>
+            <ChevronLeftIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+            <span className="hidden xs:inline">Previous</span>
+            <span className="xs:hidden">Prev</span>
           </button>
 
           {/* Page Indicator */}
-          <div className="text-gray-700 font-medium">
+          <div className="text-gray-700 font-medium text-sm sm:text-base">
             Page {currentPage}
           </div>
 
@@ -217,16 +233,16 @@ const PostFeed: React.FC = () => {
             onClick={handleNextPage}
             disabled={!hasMorePosts}
             className={`
-              flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-colors
+              flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 rounded-lg font-medium transition-all text-sm sm:text-base
               ${
                 !hasMorePosts
                   ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : 'bg-primary-500 text-white hover:bg-primary-600'
+                  : 'bg-primary-500 text-white hover:bg-primary-600 hover:shadow-md'
               }
             `}
           >
             <span>Next</span>
-            <ChevronRightIcon className="h-5 w-5" />
+            <ChevronRightIcon className="h-4 w-4 sm:h-5 sm:w-5" />
           </button>
         </div>
       </div>
