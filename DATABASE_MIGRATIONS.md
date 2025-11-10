@@ -460,12 +460,184 @@ services:
     DATABASE_URL: ${{ secrets.DATABASE_URL }}
 ```
 
+## Seeding Sample Data
+
+After applying migrations, you can populate the database with sample blog data for development and testing.
+
+### Blog System Seed Script
+
+The `backend/app/scripts/seed_blog_data.py` script creates sample authors and blog posts.
+
+**Features:**
+- Creates 5 sample authors with realistic profiles
+- Creates 10 sample blog posts across various categories
+- Includes both published posts and drafts
+- Safe to run multiple times (checks for existing data)
+- Includes diverse content: tutorials, technical articles, and best practices
+
+### Running the Seed Script
+
+```bash
+cd backend
+python -m app.scripts.seed_blog_data
+```
+
+**Expected Output:**
+```
+============================================================
+Blog System Seed Data Script
+============================================================
+
+Current database state:
+  - Authors: 0
+  - Posts: 0
+
+Seeding authors...
+------------------------------------------------------------
+Created author: Sarah Chen
+Created author: Marcus Rodriguez
+Created author: Aisha Patel
+Created author: James O'Connor
+Created author: Luna Kim
+
+Seeding posts...
+------------------------------------------------------------
+Created post: Building a Full-Stack AI Chatbot with FastAPI and React
+Created post: Understanding Retrieval-Augmented Generation (RAG)
+Created post: Containerizing Your FastAPI Application with Docker
+Created post: Database Design for Chat Applications
+Created post: Best Practices for JWT Authentication in FastAPI
+Created post: Creating Accessible React Components
+Created post: Optimizing Vector Search with ChromaDB
+Created post: Database Migrations with Alembic
+Created post: CI/CD Pipelines for Python Applications
+Created post: TypeScript Best Practices for React Projects
+
+============================================================
+Seeding completed!
+Final database state:
+  - Authors: 5
+  - Posts: 10
+============================================================
+```
+
+### Sample Data Details
+
+**Authors:**
+- Sarah Chen - Full-stack developer
+- Marcus Rodriguez - AI/ML engineer
+- Aisha Patel - DevOps specialist
+- James O'Connor - Database architect
+- Luna Kim - UX engineer
+
+**Posts:**
+The seed data includes 10 posts covering:
+- **Published Posts (7)**: Ready to display on the blog
+  - FastAPI and React chatbot tutorial
+  - RAG explanation
+  - Docker containerization
+  - Database design
+  - JWT authentication
+  - React accessibility
+  - TypeScript best practices
+
+- **Draft Posts (3)**: For testing draft functionality
+  - ChromaDB optimization
+  - Alembic migrations
+  - CI/CD pipelines
+
+**Categories:**
+- Tutorials
+- AI/ML
+- DevOps
+- Database
+- Security
+- Frontend
+
+**Tags:**
+Each post includes relevant tags (e.g., `python,fastapi,react,ai,chatbot`)
+
+### Running Seed Script in Docker
+
+Add to your Docker startup script or run manually:
+
+```bash
+# In docker-compose.yml or startup script
+docker-compose exec backend python -m app.scripts.seed_blog_data
+```
+
+Or include in the backend service command:
+
+```yaml
+services:
+  backend:
+    command: sh -c "alembic upgrade head && python -m app.scripts.seed_blog_data && uvicorn app.main:app --host 0.0.0.0"
+```
+
+### Verifying Seed Data
+
+Check the data was created:
+
+```bash
+# Using psql
+psql -U chatbot -d chatbot_db -c "SELECT name, email FROM authors;"
+psql -U chatbot -d chatbot_db -c "SELECT title, status, category FROM posts;"
+
+# Using Python
+cd backend
+python -c "
+from app.services.database import SessionLocal
+from app.models.database import Author, Post
+
+db = SessionLocal()
+print(f'Authors: {db.query(Author).count()}')
+print(f'Posts: {db.query(Post).count()}')
+print(f'Published: {db.query(Post).filter(Post.status == \"published\").count()}')
+print(f'Drafts: {db.query(Post).filter(Post.status == \"draft\").count()}')
+"
+```
+
+### Resetting Seed Data
+
+To remove seed data and reseed:
+
+```bash
+# Delete existing data
+psql -U chatbot -d chatbot_db -c "TRUNCATE posts, authors RESTART IDENTITY CASCADE;"
+
+# Reseed
+python -m app.scripts.seed_blog_data
+```
+
+**Warning:** This will delete all blog data. Use with caution in development only.
+
+### Customizing Seed Data
+
+To modify the seed data:
+
+1. Edit `backend/app/scripts/seed_blog_data.py`
+2. Update the `authors_data` list to change author information
+3. Update the `posts_data` list to change blog posts
+4. Run the script to add your custom data
+
+**Example:**
+```python
+# Add a new author
+{
+    "name": "Your Name",
+    "email": "your.email@example.com",
+    "bio": "Your bio here",
+    "profile_picture_url": "https://i.pravatar.cc/150?img=10"
+}
+```
+
 ## References
 
 - [Alembic Documentation](https://alembic.sqlalchemy.org/)
 - [SQLAlchemy Documentation](https://docs.sqlalchemy.org/)
 - Project configuration: `backend/app/utils/config.py`
 - Model definitions: `backend/app/models/database.py`
+- Seed script: `backend/app/scripts/seed_blog_data.py`
 
 ## Support
 
