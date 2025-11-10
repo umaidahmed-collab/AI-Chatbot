@@ -9,7 +9,7 @@ import uvicorn
 import os
 from contextlib import asynccontextmanager
 
-from app.routers import auth, chat, documents, users
+from app.routers import auth, chat, documents, users, posts, authors
 from app.services.database import init_db
 from app.utils.config import settings
 
@@ -46,6 +46,8 @@ app.include_router(auth.router, prefix="/api/auth", tags=["authentication"])
 app.include_router(users.router, prefix="/api/users", tags=["users"])
 app.include_router(documents.router, prefix="/api/documents", tags=["documents"])
 app.include_router(chat.router, prefix="/api/chat", tags=["chat"])
+app.include_router(posts.router, prefix="/api/posts", tags=["posts"])
+app.include_router(authors.router, prefix="/api/authors", tags=["authors"])
 
 # Mount static files
 if os.path.exists("uploads"):
