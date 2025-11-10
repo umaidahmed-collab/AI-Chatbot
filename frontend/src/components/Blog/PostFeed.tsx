@@ -1,29 +1,48 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { blogService, BlogPost } from '../../services/blogService';
 import {
   DocumentTextIcon,
   UserCircleIcon,
   CalendarIcon,
   ExclamationCircleIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
 } from '@heroicons/react/24/outline';
+
+const POSTS_PER_PAGE = 10;
 
 const PostFeed: React.FC = () => {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hasMorePosts, setHasMorePosts] = useState(true);
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+
+  // Get current page from URL query parameters (default to 1)
+  const currentPage = parseInt(searchParams.get('page') || '1', 10);
 
   useEffect(() => {
     loadPosts();
-  }, []);
+  }, [currentPage]);
 
   const loadPosts = async () => {
     try {
       setLoading(true);
       setError(null);
-      const postsData = await blogService.getPosts(20, 0);
-      setPosts(postsData);
+      const offset = (currentPage - 1) * POSTS_PER_PAGE;
+      // Request one extra post to determine if there are more pages
+      const postsData = await blogService.getPosts(POSTS_PER_PAGE + 1, offset);
+
+      // Check if there are more posts
+      if (postsData.length > POSTS_PER_PAGE) {
+        setHasMorePosts(true);
+        setPosts(postsData.slice(0, POSTS_PER_PAGE));
+      } else {
+        setHasMorePosts(false);
+        setPosts(postsData);
+      }
     } catch (err: any) {
       console.error('Error loading blog posts:', err);
       setError(
@@ -37,6 +56,22 @@ const PostFeed: React.FC = () => {
 
   const handlePostClick = (postId: number) => {
     navigate(`/blog/${postId}`);
+  };
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setSearchParams({ page: String(currentPage - 1) });
+      // Scroll to top when changing pages
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handleNextPage = () => {
+    if (hasMorePosts) {
+      setSearchParams({ page: String(currentPage + 1) });
+      // Scroll to top when changing pages
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   const formatDate = (dateString?: string): string => {
@@ -105,6 +140,7 @@ const PostFeed: React.FC = () => {
   // Posts list
   return (
     <div className="space-y-6">
+      {/* Posts */}
       {posts.map((post) => (
         <div
           key={post.id}
@@ -150,6 +186,50 @@ const PostFeed: React.FC = () => {
           </div>
         </div>
       ))}
+
+      {/* Pagination Controls */}
+      <div className="bg-white rounded-lg shadow p-4">
+        <div className="flex items-center justify-between">
+          {/* Previous Button */}
+          <button
+            onClick={handlePreviousPage}
+            disabled={currentPage === 1}
+            className={`
+              flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-colors
+              ${
+                currentPage === 1
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : 'bg-primary-500 text-white hover:bg-primary-600'
+              }
+            `}
+          >
+            <ChevronLeftIcon className="h-5 w-5" />
+            <span>Previous</span>
+          </button>
+
+          {/* Page Indicator */}
+          <div className="text-gray-700 font-medium">
+            Page {currentPage}
+          </div>
+
+          {/* Next Button */}
+          <button
+            onClick={handleNextPage}
+            disabled={!hasMorePosts}
+            className={`
+              flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-colors
+              ${
+                !hasMorePosts
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : 'bg-primary-500 text-white hover:bg-primary-600'
+              }
+            `}
+          >
+            <span>Next</span>
+            <ChevronRightIcon className="h-5 w-5" />
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
