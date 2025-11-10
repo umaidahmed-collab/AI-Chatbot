@@ -5,7 +5,7 @@ Database service and connection management.
 from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker, Session
-from app.models.database import Base
+from app.models.database import Base, User, Document, ChatSession, ChatMessage, Author, BlogPost
 from app.utils.config import settings
 import asyncio
 

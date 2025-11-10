@@ -120,3 +120,45 @@ class ChatResponse(BaseModel):
     message: str
     session_id: int
     sources: Optional[List[str]] = None
+
+
+# Author schemas
+class AuthorBase(BaseModel):
+    name: str
+    bio: Optional[str] = None
+    profile_picture_url: Optional[str] = None
+
+
+class AuthorCreate(AuthorBase):
+    pass
+
+
+class Author(AuthorBase):
+    id: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# Blog post schemas
+class BlogPostBase(BaseModel):
+    title: str
+    content: str
+    excerpt: Optional[str] = None
+    publication_date: Optional[datetime] = None
+
+
+class BlogPostCreate(BlogPostBase):
+    author_id: int
+
+
+class BlogPost(BlogPostBase):
+    id: int
+    author_id: int
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    author: Optional[Author] = None
+
+    class Config:
+        from_attributes = True
