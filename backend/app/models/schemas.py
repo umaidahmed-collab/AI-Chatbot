@@ -155,6 +155,14 @@ class Author(AuthorBase):
         from_attributes = True
 
 
+class AuthorWithPosts(Author):
+    """Schema for author responses including their posts."""
+    posts: List['Post'] = Field(default=[], description="List of posts by this author")
+
+    class Config:
+        from_attributes = True
+
+
 # Post schemas
 class PostBase(BaseModel):
     """Base schema for Post with common attributes."""
