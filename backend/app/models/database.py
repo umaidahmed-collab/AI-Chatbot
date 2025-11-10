@@ -14,7 +14,7 @@ Base = declarative_base()
 class User(Base):
     """User model."""
     __tablename__ = "users"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(50), unique=True, index=True, nullable=False)
     email = Column(String(100), unique=True, index=True, nullable=False)
@@ -23,10 +23,11 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
-    
+
     # Relationships
     documents = relationship("Document", back_populates="owner")
     chat_sessions = relationship("ChatSession", back_populates="user")
+    posts = relationship("Post", back_populates="author")
 
 
 class Document(Base):
@@ -66,12 +67,28 @@ class ChatSession(Base):
 class ChatMessage(Base):
     """Chat message model."""
     __tablename__ = "chat_messages"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     session_id = Column(Integer, ForeignKey("chat_sessions.id"))
     content = Column(Text, nullable=False)
     role = Column(String(20), nullable=False)  # 'user' or 'assistant'
     timestamp = Column(DateTime(timezone=True), server_default=func.now())
-    
+
     # Relationships
     session = relationship("ChatSession", back_populates="messages")
+
+
+class Post(Base):
+    """Post model."""
+    __tablename__ = "posts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(255), nullable=False)
+    content = Column(Text, nullable=False)
+    image_url = Column(String(500))
+    author_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    # Relationships
+    author = relationship("User", back_populates="posts")
