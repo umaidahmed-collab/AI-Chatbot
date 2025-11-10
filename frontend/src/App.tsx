@@ -6,6 +6,7 @@ import Register from './components/Auth/Register';
 import Dashboard from './components/Dashboard/Dashboard';
 import Chat from './components/Chat/Chat';
 import Documents from './components/Documents/Documents';
+import Blog from './components/Blog/Blog';
 import Layout from './components/Layout/Layout';
 
 function App() {
@@ -38,6 +39,7 @@ function App() {
         <Route path="/chat" element={<Chat />} />
         <Route path="/chat/:sessionId" element={<Chat />} />
         <Route path="/documents" element={<Documents />} />
+        <Route path="/blog/*" element={<Blog />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Layout>

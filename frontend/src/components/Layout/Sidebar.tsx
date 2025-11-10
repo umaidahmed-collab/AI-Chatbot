@@ -4,12 +4,14 @@ import {
   HomeIcon,
   ChatBubbleLeftRightIcon,
   DocumentTextIcon,
+  NewspaperIcon,
 } from '@heroicons/react/24/outline';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: HomeIcon },
   { name: 'Chat', href: '/chat', icon: ChatBubbleLeftRightIcon },
   { name: 'Documents', href: '/documents', icon: DocumentTextIcon },
+  { name: 'Blog', href: '/blog', icon: NewspaperIcon },
 ];
 
 const Sidebar: React.FC = () => {
@@ -29,9 +31,10 @@ const Sidebar: React.FC = () => {
       <nav className="px-3 pb-6">
         <ul className="space-y-1">
           {navigation.map((item) => {
-            const isActive = location.pathname === item.href || 
-              (item.href === '/chat' && location.pathname.startsWith('/chat'));
-            
+            const isActive = location.pathname === item.href ||
+              (item.href === '/chat' && location.pathname.startsWith('/chat')) ||
+              (item.href === '/blog' && location.pathname.startsWith('/blog'));
+
             return (
               <li key={item.name}>
                 <Link
