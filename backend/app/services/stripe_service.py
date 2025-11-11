@@ -192,6 +192,124 @@ class StripeService:
             print(f"Unexpected error in retrieve_session: {e}")
             raise
 
+    def construct_webhook_event(
+        self,
+        payload: bytes,
+        signature: str,
+        webhook_secret: str
+    ) -> stripe.Event:
+        """
+        Construct and verify a Stripe webhook event.
+
+        Args:
+            payload: Raw request body as bytes
+            signature: Stripe signature header value
+            webhook_secret: Webhook signing secret
+
+        Returns:
+            Verified Stripe Event object
+
+        Raises:
+            stripe.error.SignatureVerificationError: If signature verification fails
+        """
+        try:
+            event = stripe.Webhook.construct_event(
+                payload, signature, webhook_secret
+            )
+            return event
+        except stripe.error.SignatureVerificationError as e:
+            print(f"Webhook signature verification failed: {e}")
+            raise
+        except Exception as e:
+            print(f"Error constructing webhook event: {e}")
+            raise
+
+    def create_payment_record(
+        self,
+        db: Session,
+        session_data: Dict[str, Any]
+    ) -> Optional[Any]:
+        """
+        Create a payment record from a completed checkout session.
+
+        Args:
+            db: Database session
+            session_data: Checkout session data from Stripe
+
+        Returns:
+            Payment record or None if creation fails
+        """
+        try:
+            from app.models.database import Payment
+
+            # Extract relevant data from session
+            user_id = session_data.get("metadata", {}).get("user_id")
+            if not user_id:
+                print("No user_id found in session metadata")
+                return None
+
+            # Convert amount from cents to decimal
+            amount_cents = session_data.get("amount_total", 0)
+            amount = amount_cents / 100.0
+
+            # Create payment record
+            payment = Payment(
+                user_id=int(user_id),
+                stripe_customer_id=session_data.get("customer"),
+                stripe_checkout_session_id=session_data.get("id"),
+                amount=amount,
+                currency=session_data.get("currency", "usd"),
+                status="completed"
+            )
+
+            db.add(payment)
+            db.commit()
+            db.refresh(payment)
+
+            return payment
+
+        except Exception as e:
+            print(f"Error creating payment record: {e}")
+            db.rollback()
+            return None
+
+    def update_payment_status(
+        self,
+        db: Session,
+        checkout_session_id: str,
+        status: str
+    ) -> bool:
+        """
+        Update the status of a payment record.
+
+        Args:
+            db: Database session
+            checkout_session_id: Stripe checkout session ID
+            status: New status value
+
+        Returns:
+            True if update was successful, False otherwise
+        """
+        try:
+            from app.models.database import Payment
+
+            payment = db.query(Payment).filter(
+                Payment.stripe_checkout_session_id == checkout_session_id
+            ).first()
+
+            if payment:
+                payment.status = status
+                db.commit()
+                return True
+            else:
+                print(f"No payment found for session {checkout_session_id}")
+                return False
+
+        except Exception as e:
+            print(f"Error updating payment status: {e}")
+            db.rollback()
+            return False
+
 
 # Global instance
 stripe_service = StripeService()

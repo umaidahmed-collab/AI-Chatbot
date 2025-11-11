@@ -2,15 +2,17 @@
 Payment router for handling Stripe checkout sessions.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Header
 from sqlalchemy.orm import Session
-from typing import Dict, Any
+from typing import Dict, Any, Optional
+import stripe
 
 from app.models.database import User
 from app.models.schemas import CheckoutSessionCreate, CheckoutSessionResponse
 from app.services.auth import get_current_active_user
 from app.services.database import get_db
 from app.services.stripe_service import stripe_service
+from app.utils.config import settings
 
 router = APIRouter()
 
@@ -170,3 +172,120 @@ async def payment_cancel(
         "message": "Payment was cancelled",
         "session_id": session_id
     }
+
+
+@router.post("/webhook")
+async def stripe_webhook(
+    request: Request,
+    db: Session = Depends(get_db),
+    stripe_signature: Optional[str] = Header(None, alias="stripe-signature")
+) -> Dict[str, Any]:
+    """
+    Handle Stripe webhook events.
+
+    This endpoint receives webhook events from Stripe, verifies the signature,
+    and processes the events accordingly. It handles:
+    - checkout.session.completed: Creates a payment record in the database
+    - checkout.session.expired: Updates payment status to expired
+
+    Args:
+        request: FastAPI request object containing the raw webhook payload
+        db: Database session
+        stripe_signature: Stripe signature header for webhook verification
+
+    Returns:
+        Dictionary with success status
+
+    Raises:
+        HTTPException: If webhook verification fails or processing encounters errors
+    """
+    # Get raw body for signature verification
+    try:
+        payload = await request.body()
+    except Exception as e:
+        print(f"Error reading request body: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid request body"
+        )
+
+    # Verify webhook signature
+    if not stripe_signature:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Missing stripe-signature header"
+        )
+
+    if not settings.STRIPE_WEBHOOK_SECRET:
+        print("Warning: STRIPE_WEBHOOK_SECRET not configured")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Webhook secret not configured"
+        )
+
+    try:
+        event = stripe_service.construct_webhook_event(
+            payload=payload,
+            signature=stripe_signature,
+            webhook_secret=settings.STRIPE_WEBHOOK_SECRET
+        )
+    except stripe.error.SignatureVerificationError as e:
+        print(f"Webhook signature verification failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid signature"
+        )
+    except Exception as e:
+        print(f"Error constructing webhook event: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid webhook payload"
+        )
+
+    # Handle the event
+    event_type = event["type"]
+    event_data = event["data"]["object"]
+
+    try:
+        if event_type == "checkout.session.completed":
+            # Handle successful checkout session
+            print(f"Processing checkout.session.completed for session {event_data['id']}")
+
+            # Retrieve full session details from Stripe
+            session_data = stripe_service.retrieve_session(event_data["id"])
+
+            # Create payment record in database
+            payment = stripe_service.create_payment_record(db, session_data)
+
+            if payment:
+                print(f"Payment record created: {payment.id}")
+            else:
+                print("Failed to create payment record")
+
+        elif event_type == "checkout.session.expired":
+            # Handle expired checkout session
+            print(f"Processing checkout.session.expired for session {event_data['id']}")
+
+            # Update payment status to expired
+            updated = stripe_service.update_payment_status(
+                db,
+                checkout_session_id=event_data["id"],
+                status="expired"
+            )
+
+            if updated:
+                print(f"Payment status updated to expired for session {event_data['id']}")
+            else:
+                print(f"No existing payment found for expired session {event_data['id']}")
+
+        else:
+            # Log unhandled event types
+            print(f"Unhandled webhook event type: {event_type}")
+
+    except Exception as e:
+        print(f"Error processing webhook event {event_type}: {e}")
+        # Return 200 anyway to acknowledge receipt
+        # Stripe will retry if we return an error
+
+    # Always return 200 to acknowledge receipt
+    return {"success": True}
