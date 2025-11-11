@@ -120,3 +120,30 @@ class ChatResponse(BaseModel):
     message: str
     session_id: int
     sources: Optional[List[str]] = None
+
+
+# Payment schemas
+class CheckoutSessionCreate(BaseModel):
+    amount: int  # Amount in cents (e.g., 1000 = $10.00)
+    currency: str = "usd"
+    success_url: str
+    cancel_url: str
+
+
+class CheckoutSessionResponse(BaseModel):
+    session_id: str
+    checkout_url: str
+
+
+class PaymentResponse(BaseModel):
+    id: int
+    user_id: int
+    amount: int
+    currency: str
+    status: str
+    stripe_payment_intent_id: Optional[str] = None
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
