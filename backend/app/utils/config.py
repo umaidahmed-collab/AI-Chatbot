@@ -39,7 +39,11 @@ class Settings(BaseSettings):
     
     # Redis
     REDIS_URL: str = "redis://localhost:6379"
-    
+
+    # Stripe
+    STRIPE_API_KEY: str = ""
+    STRIPE_WEBHOOK_SECRET: str = ""
+
     # Environment
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
