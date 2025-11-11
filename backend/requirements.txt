@@ -36,3 +36,6 @@ redis==5.0.1
 
 # File handling
 aiofiles==23.2.0
+
+# Payment processing
+stripe==8.0.0
