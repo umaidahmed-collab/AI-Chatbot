@@ -20,7 +20,29 @@ class Settings(BaseSettings):
     
     # OpenAI
     OPENAI_API_KEY: str = ""
-    
+
+    # SendGrid Email Configuration
+    SENDGRID_API_KEY: str = ""
+    SENDGRID_FROM_EMAIL: str = "noreply@example.com"
+    SENDGRID_FROM_NAME: str = "AI Chatbot"
+
+    # Email Template Settings
+    EMAIL_LOGO_URL: str = "https://example.com/logo.png"
+    EMAIL_BRAND_PRIMARY_COLOR: str = "#4F46E5"
+    EMAIL_BRAND_SECONDARY_COLOR: str = "#6366F1"
+    EMAIL_COMPANY_NAME: str = "AI Chatbot Inc."
+    EMAIL_SUPPORT_EMAIL: str = "support@example.com"
+
+    # Receipt Settings
+    RECEIPT_PDF_ENABLED: bool = True
+    RECEIPT_URL_BASE: str = "https://example.com/receipts"
+    RECEIPT_STORAGE_PATH: str = "receipts"
+
+    # Email Retry Policy
+    EMAIL_MAX_RETRIES: int = 3
+    EMAIL_RETRY_DELAYS: List[int] = [1, 5, 15]  # seconds between retries
+    EMAIL_RETRY_EXPONENTIAL_BACKOFF: bool = True
+
     # CORS
     ALLOWED_ORIGINS: List[str] = [
         "http://localhost:3000",
